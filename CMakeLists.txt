@@ -11,6 +11,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raylib)
 
-add_executable(cpp_arcade main.cpp)
+add_executable(cpp_arcade main.cpp
+        src/tictactoe/TicTacToe.h
+        src/tictactoe/TicTacToe.cpp
+)
 
 target_link_libraries(cpp_arcade raylib)
