@@ -16,6 +16,8 @@ add_executable(cpp_arcade main.cpp
         src/tictactoe/TicTacToe.cpp
         src/pong/Pong.h
         src/pong/Pong.cpp
+        src/snake/Snake.h
+        src/snake/Snake.cpp
 )
 
 target_link_libraries(cpp_arcade raylib)

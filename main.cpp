@@ -1,6 +1,7 @@
 #include <iostream>
 #include "src/tictactoe/TicTacToe.h"
 #include "src/pong/Pong.h"
+#include "src/snake/Snake.h"
 
 int main() {
     int choice = 0;
@@ -10,7 +11,8 @@ int main() {
     std::cout << "========================\n";
     std::cout << "1. Tic-Tac-Toe\n";
     std::cout << "2. Pong\n";
-    std::cout << "3. Sair\n";
+    std::cout << "3. Snake\n";
+    std::cout << "4. Sair\n";
     std::cout << "Escolha o jogo: ";
     std::cin >> choice;
 
@@ -22,6 +24,9 @@ int main() {
             Pong::run();
             break;
         case 3:
+            Snake::run();
+            break;
+        case 4:
             std::cout << "Saindo...\n";
             break;
         default:
