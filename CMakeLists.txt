@@ -14,6 +14,8 @@ FetchContent_MakeAvailable(raylib)
 add_executable(cpp_arcade main.cpp
         src/tictactoe/TicTacToe.h
         src/tictactoe/TicTacToe.cpp
+        src/pong/Pong.h
+        src/pong/Pong.cpp
 )
 
 target_link_libraries(cpp_arcade raylib)
