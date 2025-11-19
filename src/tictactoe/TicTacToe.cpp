@@ -62,83 +62,212 @@ namespace TicTacToe {
         if (full) currentState = GameState::DRAW;
     }
 
-    void run() {
-        InitWindow(SCREEN_SIZE, SCREEN_SIZE, "Tic-Tac-Toe - C++ Arcade");
-        InitGame();
+    struct Point { int r, c; };
 
-        while (!WindowShouldClose()) {
-            // --- 1. UPDATE (Lógica) ---
-            if (currentState == GameState::PLAYING) {
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                    int mouseX = GetMouseX();
-                    int mouseY = GetMouseY();
+    std::vector<Point> GetEmptyCells() {
+        std::vector<Point> empties;
+        for(int i=0; i<3; i++)
+            for(int j=0; j<3; j++)
+                if(board[i][j] == Cell::EMPTY) empties.push_back({i, j});
+        return empties;
+    }
 
-                    // Matemática simples para pegar o índice da matriz
-                    int col = mouseX / CELL_SIZE;
-                    int row = mouseY / CELL_SIZE;
+    // IA Nível 1: Aleatório
+    void AImove_Easy() {
+        auto empties = GetEmptyCells();
+        if (empties.empty()) return;
+        Point p = empties[GetRandomValue(0, empties.size() - 1)];
+        board[p.r][p.c] = Cell::O;
+    }
 
-                    // Proteção: verifica limites e se célula está vazia
-                    if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] == Cell::EMPTY) {
-                        board[row][col] = currentPlayer;
-                        CheckWinner();
-                        // Troca turno
-                        if (currentState == GameState::PLAYING) {
-                            currentPlayer = (currentPlayer == Cell::X) ? Cell::O : Cell::X;
-                        }
+    int Minimax(Cell tempBoard[3][3], int depth, bool isMaximizing) {
+        // 1. Verifica estado terminal (quem ganhou nesta simulação?)
+        // (Reimplementação simplificada da checagem de vitória para a recursão)
+        for(int i=0; i<3; i++){
+             if(tempBoard[i][0] != Cell::EMPTY && tempBoard[i][0]==tempBoard[i][1] && tempBoard[i][1]==tempBoard[i][2]){
+                 if(tempBoard[i][0] == Cell::O) return 10 - depth; // IA ganha (preferência por vitória rápida)
+                 else return depth - 10; // Humano ganha
+             }
+             if(tempBoard[0][i] != Cell::EMPTY && tempBoard[0][i]==tempBoard[1][i] && tempBoard[1][i]==tempBoard[2][i]){
+                 if(tempBoard[0][i] == Cell::O) return 10 - depth;
+                 else return depth - 10;
+             }
+        }
+        if(tempBoard[0][0] != Cell::EMPTY && tempBoard[0][0]==tempBoard[1][1] && tempBoard[1][1]==tempBoard[2][2]){
+             if(tempBoard[0][0] == Cell::O) return 10 - depth; else return depth - 10;
+        }
+        if(tempBoard[0][2] != Cell::EMPTY && tempBoard[0][2]==tempBoard[1][1] && tempBoard[1][1]==tempBoard[2][0]){
+             if(tempBoard[0][2] == Cell::O) return 10 - depth; else return depth - 10;
+        }
+
+        // Verifica empate na simulação
+        bool full = true;
+        for(int i=0; i<3; i++) for(int j=0; j<3; j++) if(tempBoard[i][j] == Cell::EMPTY) full = false;
+        if(full) return 0;
+
+        // 2. Parte Recursiva
+        if (isMaximizing) { // Turno da IA (O)
+            int bestScore = -1000;
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    if(tempBoard[i][j] == Cell::EMPTY){
+                        tempBoard[i][j] = Cell::O;
+                        int score = Minimax(tempBoard, depth + 1, false);
+                        tempBoard[i][j] = Cell::EMPTY; // Backtracking (Desfaz)
+                        bestScore = std::max(score, bestScore);
                     }
                 }
-            } else {
-                // Se o jogo acabou, R para reiniciar
-                if (IsKeyPressed(KEY_R)) {
-                    InitGame();
+            }
+            return bestScore;
+        } else { // Turno do Humano (X)
+            int bestScore = 1000;
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    if(tempBoard[i][j] == Cell::EMPTY){
+                        tempBoard[i][j] = Cell::X;
+                        int score = Minimax(tempBoard, depth + 1, true);
+                        tempBoard[i][j] = Cell::EMPTY; // Backtracking
+                        bestScore = std::min(score, bestScore);
+                    }
                 }
             }
+            return bestScore;
+        }
+    }
 
-            // --- 2. DRAW (Desenho) ---
+    void AImove_Hard() {
+        int bestScore = -1000;
+        Point bestMove = {-1, -1};
+
+        for(int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                if(board[i][j] == Cell::EMPTY){
+                    board[i][j] = Cell::O; // Faz movimento hipotético
+                    int score = Minimax(board, 0, false); // Calcula resultado
+                    board[i][j] = Cell::EMPTY; // Desfaz
+
+                    if(score > bestScore){
+                        bestScore = score;
+                        bestMove = {i, j};
+                    }
+                }
+            }
+        }
+        if(bestMove.r != -1) board[bestMove.r][bestMove.c] = Cell::O;
+    }
+
+    void AImove_Medium() {
+        if (GetRandomValue(0, 100) < 40) AImove_Easy(); // 40% de chance de errar
+        else AImove_Hard(); // 60% de chance de jogar perfeito
+    }
+
+    void ExecuteAI() {
+        if (currentState != GameState::PLAYING) return;
+
+        if (aiDifficulty == Difficulty::EASY) AImove_Easy();
+        else if (aiDifficulty == Difficulty::MEDIUM) AImove_Medium();
+        else AImove_Hard();
+
+        CheckWinner();
+        if (currentState == GameState::PLAYING) currentPlayer = Cell::X; // Volta vez pro humano
+    }
+
+    bool DrawButton(const char* text, Rectangle rect) {
+        bool clicked = false;
+        Vector2 mousePoint = GetMousePosition();
+        bool hover = CheckCollisionPointRec(mousePoint, rect);
+
+        DrawRectangleRec(rect, hover ? DARKGRAY : GRAY);
+        DrawRectangleLinesEx(rect, 2, BLACK);
+        int textW = MeasureText(text, 20);
+        DrawText(text, rect.x + rect.width/2 - textW/2, rect.y + rect.height/2 - 10, 20, WHITE);
+
+        if (hover && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) clicked = true;
+        return clicked;
+    }
+
+    // --- LOOP PRINCIPAL ---
+    void run() {
+        InitWindow(SCREEN_SIZE, SCREEN_SIZE, "Tic-Tac-Toe - C++ Arcade");
+        currentScreen = Screen::MENU;
+
+        while (!WindowShouldClose()) {
             BeginDrawing();
             ClearBackground(RAYWHITE);
 
-            // Desenha o Grid
-            for (int i = 1; i < 3; i++) {
-                DrawLine(i * CELL_SIZE, 0, i * CELL_SIZE, SCREEN_SIZE, LIGHTGRAY); // Verticais
-                DrawLine(0, i * CELL_SIZE, SCREEN_SIZE, i * CELL_SIZE, LIGHTGRAY); // Horizontais
-            }
+            // === MÁQUINA DE ESTADOS ===
 
-            // Desenha as Peças (Reutilização via Loop)
-            for (int row = 0; row < 3; row++) {
-                for (int col = 0; col < 3; col++) {
-                    int centerX = col * CELL_SIZE + CELL_SIZE / 2;
-                    int centerY = row * CELL_SIZE + CELL_SIZE / 2;
+            if (currentScreen == Screen::MENU) {
+                DrawText("TIC TAC TOE", 180, 100, 40, DARKGRAY);
+                if (DrawButton("HUMANO VS HUMANO", {150, 250, 300, 50})) {
+                    selectedOpponent = Opponent::HUMAN;
+                    InitGame();
+                    currentScreen = Screen::GAME;
+                }
+                if (DrawButton("HUMANO VS IA", {150, 320, 300, 50})) {
+                    selectedOpponent = Opponent::AI;
+                    currentScreen = Screen::DIFFICULTY_SELECT;
+                }
 
-                    if (board[row][col] == Cell::X) {
-                        // Desenha X
-                        DrawLineEx({(float)centerX - 40, (float)centerY - 40},
-                                   {(float)centerX + 40, (float)centerY + 40}, 10, RED);
-                        DrawLineEx({(float)centerX + 40, (float)centerY - 40},
-                                   {(float)centerX - 40, (float)centerY + 40}, 10, RED);
-                    } else if (board[row][col] == Cell::O) {
-                        // Desenha O
-                        DrawCircleLines(centerX, centerY, 45, BLUE);
+            } else if (currentScreen == Screen::DIFFICULTY_SELECT) {
+                DrawText("NIVEL DA IA", 200, 100, 30, DARKGRAY);
+                if (DrawButton("FACIL (Random)", {200, 200, 200, 40})) { aiDifficulty = Difficulty::EASY; InitGame(); currentScreen = Screen::GAME; }
+                if (DrawButton("MEDIO (Hibrido)", {200, 260, 200, 40})) { aiDifficulty = Difficulty::MEDIUM; InitGame(); currentScreen = Screen::GAME; }
+                if (DrawButton("DIFICIL (Minimax)", {200, 320, 200, 40})) { aiDifficulty = Difficulty::HARD; InitGame(); currentScreen = Screen::GAME; }
+
+            } else if (currentScreen == Screen::GAME) {
+                // --- 1. UPDATE ---
+                if (currentState == GameState::PLAYING) {
+                    if (currentPlayer == Cell::X || (currentPlayer == Cell::O && selectedOpponent == Opponent::HUMAN)) {
+                        // Turno do Humano (ou Player 2)
+                        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                            int col = GetMouseX() / CELL_SIZE;
+                            int row = GetMouseY() / CELL_SIZE;
+                            if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] == Cell::EMPTY) {
+                                board[row][col] = currentPlayer;
+                                CheckWinner();
+                                if (currentState == GameState::PLAYING) {
+                                    currentPlayer = (currentPlayer == Cell::X) ? Cell::O : Cell::X;
+                                    // Se for contra IA, força a IA a jogar imediatamente após o humano
+                                    if (selectedOpponent == Opponent::AI && currentPlayer == Cell::O) {
+                                        ExecuteAI();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Fim de jogo: R para reiniciar, M para menu
+                    if (IsKeyPressed(KEY_R)) InitGame();
+                    if (IsKeyPressed(KEY_M)) currentScreen = Screen::MENU;
+                }
+
+                // --- 2. DRAW ---
+                for (int i = 1; i < 3; i++) {
+                    DrawLine(i * CELL_SIZE, 0, i * CELL_SIZE, SCREEN_SIZE, LIGHTGRAY);
+                    DrawLine(0, i * CELL_SIZE, SCREEN_SIZE, i * CELL_SIZE, LIGHTGRAY);
+                }
+                for (int r = 0; r < 3; r++) {
+                    for (int c = 0; c < 3; c++) {
+                        int cx = c * CELL_SIZE + CELL_SIZE / 2;
+                        int cy = r * CELL_SIZE + CELL_SIZE / 2;
+                        if (board[r][c] == Cell::X) {
+                            DrawLineEx({(float)cx - 40, (float)cy - 40}, {(float)cx + 40, (float)cy + 40}, 10, RED);
+                            DrawLineEx({(float)cx + 40, (float)cy - 40}, {(float)cx - 40, (float)cy + 40}, 10, RED);
+                        } else if (board[r][c] == Cell::O) DrawCircleLines(cx, cy, 45, BLUE);
                     }
                 }
-            }
 
-            // UI de Fim de Jogo
-            if (currentState != GameState::PLAYING) {
-                DrawRectangle(0, SCREEN_SIZE/2 - 50, SCREEN_SIZE, 100, Fade(BLACK, 0.8f));
-                const char* text = "";
-                if (currentState == GameState::WIN_X) text = "JOGADOR X VENCEU!";
-                else if (currentState == GameState::WIN_O) text = "JOGADOR O VENCEU!";
-                else text = "EMPATE (VELHA)!";
-
-                int textWidth = MeasureText(text, 30);
-                DrawText(text, SCREEN_SIZE/2 - textWidth/2, SCREEN_SIZE/2 - 15, 30, WHITE);
-                DrawText("Pressione 'R' para reiniciar", SCREEN_SIZE/2 - 100, SCREEN_SIZE/2 + 20, 20, LIGHTGRAY);
+                if (currentState != GameState::PLAYING) {
+                    DrawRectangle(0, 250, 600, 100, Fade(BLACK, 0.8f));
+                    const char* t = (currentState == GameState::WIN_X) ? "X VENCEU!" : (currentState == GameState::WIN_O) ? "O VENCEU!" : "EMPATE!";
+                    DrawText(t, 300 - MeasureText(t, 30)/2, 285, 30, WHITE);
+                    DrawText("[R] Reiniciar  [M] Menu", 300 - MeasureText("[R] Reiniciar  [M] Menu", 20)/2, 320, 20, LIGHTGRAY);
+                }
             }
 
             EndDrawing();
         }
-
         CloseWindow();
     }
 }

@@ -14,7 +14,7 @@ int main() {
 
     switch (choice) {
         case 1:
-            TicTacToe::run(); // Chama o jogo usando o namespace
+            TicTacToe::run();
             break;
         case 2:
             std::cout << "Saindo...\n";
