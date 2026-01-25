@@ -31,19 +31,16 @@ namespace TicTacToe {
 
     void CheckWinner() {
         for (int i = 0; i < 3; i++) {
-            // Linhas
             if (board[i][0] != Cell::EMPTY && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
                 currentState = (board[i][0] == Cell::X) ? GameState::WIN_X : GameState::WIN_O;
                 return;
             }
-            // Colunas
             if (board[0][i] != Cell::EMPTY && board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
                 currentState = (board[0][i] == Cell::X) ? GameState::WIN_X : GameState::WIN_O;
                 return;
             }
         }
 
-        // Diagonais
         if (board[0][0] != Cell::EMPTY && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
             currentState = (board[0][0] == Cell::X) ? GameState::WIN_X : GameState::WIN_O;
             return;
@@ -53,7 +50,6 @@ namespace TicTacToe {
             return;
         }
 
-        // Verifica Empate (Velha)
         bool full = true;
         for(int i=0; i<3; i++)
             for(int j=0; j<3; j++)
@@ -72,7 +68,6 @@ namespace TicTacToe {
         return empties;
     }
 
-    // IA Nível 1: Aleatório
     void AImove_Easy() {
         auto empties = GetEmptyCells();
         if (empties.empty()) return;
@@ -81,12 +76,10 @@ namespace TicTacToe {
     }
 
     int Minimax(Cell tempBoard[3][3], int depth, bool isMaximizing) {
-        // 1. Verifica estado terminal (quem ganhou nesta simulação?)
-        // (Reimplementação simplificada da checagem de vitória para a recursão)
         for(int i=0; i<3; i++){
              if(tempBoard[i][0] != Cell::EMPTY && tempBoard[i][0]==tempBoard[i][1] && tempBoard[i][1]==tempBoard[i][2]){
-                 if(tempBoard[i][0] == Cell::O) return 10 - depth; // IA ganha (preferência por vitória rápida)
-                 else return depth - 10; // Humano ganha
+                 if(tempBoard[i][0] == Cell::O) return 10 - depth;
+                 else return depth - 10;
              }
              if(tempBoard[0][i] != Cell::EMPTY && tempBoard[0][i]==tempBoard[1][i] && tempBoard[1][i]==tempBoard[2][i]){
                  if(tempBoard[0][i] == Cell::O) return 10 - depth;
@@ -100,13 +93,11 @@ namespace TicTacToe {
              if(tempBoard[0][2] == Cell::O) return 10 - depth; else return depth - 10;
         }
 
-        // Verifica empate na simulação
         bool full = true;
         for(int i=0; i<3; i++) for(int j=0; j<3; j++) if(tempBoard[i][j] == Cell::EMPTY) full = false;
         if(full) return 0;
 
-        // 2. Parte Recursiva
-        if (isMaximizing) { // Turno da IA (O)
+        if (isMaximizing) {
             int bestScore = -1000;
             for(int i=0; i<3; i++){
                 for(int j=0; j<3; j++){
@@ -119,14 +110,14 @@ namespace TicTacToe {
                 }
             }
             return bestScore;
-        } else { // Turno do Humano (X)
+        } else {
             int bestScore = 1000;
             for(int i=0; i<3; i++){
                 for(int j=0; j<3; j++){
                     if(tempBoard[i][j] == Cell::EMPTY){
                         tempBoard[i][j] = Cell::X;
                         int score = Minimax(tempBoard, depth + 1, true);
-                        tempBoard[i][j] = Cell::EMPTY; // Backtracking
+                        tempBoard[i][j] = Cell::EMPTY;
                         bestScore = std::min(score, bestScore);
                     }
                 }
@@ -142,9 +133,9 @@ namespace TicTacToe {
         for(int i=0; i<3; i++){
             for(int j=0; j<3; j++){
                 if(board[i][j] == Cell::EMPTY){
-                    board[i][j] = Cell::O; // Faz movimento hipotético
-                    int score = Minimax(board, 0, false); // Calcula resultado
-                    board[i][j] = Cell::EMPTY; // Desfaz
+                    board[i][j] = Cell::O;
+                    int score = Minimax(board, 0, false);
+                    board[i][j] = Cell::EMPTY;
 
                     if(score > bestScore){
                         bestScore = score;
@@ -157,8 +148,8 @@ namespace TicTacToe {
     }
 
     void AImove_Medium() {
-        if (GetRandomValue(0, 100) < 40) AImove_Easy(); // 40% de chance de errar
-        else AImove_Hard(); // 60% de chance de jogar perfeito
+        if (GetRandomValue(0, 100) < 40) AImove_Easy();
+        else AImove_Hard();
     }
 
     void ExecuteAI() {
@@ -169,7 +160,7 @@ namespace TicTacToe {
         else AImove_Hard();
 
         CheckWinner();
-        if (currentState == GameState::PLAYING) currentPlayer = Cell::X; // Volta vez pro humano
+        if (currentState == GameState::PLAYING) currentPlayer = Cell::X;
     }
 
     bool DrawButton(const char* text, Rectangle rect) {
@@ -186,7 +177,6 @@ namespace TicTacToe {
         return clicked;
     }
 
-    // --- LOOP PRINCIPAL ---
     void run() {
         InitWindow(SCREEN_SIZE, SCREEN_SIZE, "Tic-Tac-Toe - C++ Arcade");
         currentScreen = Screen::MENU;
@@ -194,8 +184,6 @@ namespace TicTacToe {
         while (!WindowShouldClose()) {
             BeginDrawing();
             ClearBackground(RAYWHITE);
-
-            // === MÁQUINA DE ESTADOS ===
 
             if (currentScreen == Screen::MENU) {
                 DrawText("TIC TAC TOE", 180, 100, 40, DARKGRAY);
@@ -214,12 +202,11 @@ namespace TicTacToe {
                 if (DrawButton("FACIL (Random)", {200, 200, 200, 40})) { aiDifficulty = Difficulty::EASY; InitGame(); currentScreen = Screen::GAME; }
                 if (DrawButton("MEDIO (Hibrido)", {200, 260, 200, 40})) { aiDifficulty = Difficulty::MEDIUM; InitGame(); currentScreen = Screen::GAME; }
                 if (DrawButton("DIFICIL (Minimax)", {200, 320, 200, 40})) { aiDifficulty = Difficulty::HARD; InitGame(); currentScreen = Screen::GAME; }
+                if (DrawButton("VOLTAR", {200, 380, 200, 40})) { currentScreen = Screen::MENU;}
 
             } else if (currentScreen == Screen::GAME) {
-                // --- 1. UPDATE ---
                 if (currentState == GameState::PLAYING) {
                     if (currentPlayer == Cell::X || (currentPlayer == Cell::O && selectedOpponent == Opponent::HUMAN)) {
-                        // Turno do Humano (ou Player 2)
                         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                             int col = GetMouseX() / CELL_SIZE;
                             int row = GetMouseY() / CELL_SIZE;
@@ -228,7 +215,6 @@ namespace TicTacToe {
                                 CheckWinner();
                                 if (currentState == GameState::PLAYING) {
                                     currentPlayer = (currentPlayer == Cell::X) ? Cell::O : Cell::X;
-                                    // Se for contra IA, força a IA a jogar imediatamente após o humano
                                     if (selectedOpponent == Opponent::AI && currentPlayer == Cell::O) {
                                         ExecuteAI();
                                     }
@@ -237,12 +223,10 @@ namespace TicTacToe {
                         }
                     }
                 } else {
-                    // Fim de jogo: R para reiniciar, M para menu
                     if (IsKeyPressed(KEY_R)) InitGame();
                     if (IsKeyPressed(KEY_M)) currentScreen = Screen::MENU;
                 }
 
-                // --- 2. DRAW ---
                 for (int i = 1; i < 3; i++) {
                     DrawLine(i * CELL_SIZE, 0, i * CELL_SIZE, SCREEN_SIZE, LIGHTGRAY);
                     DrawLine(0, i * CELL_SIZE, SCREEN_SIZE, i * CELL_SIZE, LIGHTGRAY);

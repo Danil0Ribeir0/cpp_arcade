@@ -4,22 +4,18 @@
 
 namespace Snake {
 
-    // --- CONFIGURAÇÕES ---
     const int CELL_SIZE = 30;
-    const int CELL_COUNT = 25; // 25x30 = 750px
+    const int CELL_COUNT = 25;
     const int SCREEN_SIZE = CELL_SIZE * CELL_COUNT;
-    const double INITIAL_SPEED = 0.2; // Move a cada 0.2 segundos
+    const double INITIAL_SPEED = 0.2;
 
-    // --- ESTRUTURAS ---
     struct Point {
         int x, y;
-        // Sobrecarga do operador == para facilitar comparações
         bool operator==(const Point& other) const {
             return x == other.x && y == other.y;
         }
     };
 
-    // --- ESTADO DO JOGO ---
     std::deque<Point> body;
     Point direction = {1, 0}; // Começa movendo para direita
     Point food;
