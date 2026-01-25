@@ -18,6 +18,8 @@ add_executable(cpp_arcade main.cpp
         src/pong/Pong.cpp
         src/snake/Snake.h
         src/snake/Snake.cpp
+        src/breakout/Breakout.h
+        src/breakout/Breakout.cpp
 )
 
 target_link_libraries(cpp_arcade raylib)
