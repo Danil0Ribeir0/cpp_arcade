@@ -3,6 +3,7 @@
 #include "src/pong/Pong.h"
 #include "src/snake/Snake.h"
 #include "src/breakout/Breakout.h"
+#include "src/spaceinvaders/SpaceInvaders.h"
 
 int main() {
     int choice = 0;
@@ -14,7 +15,8 @@ int main() {
     std::cout << "2. Pong\n";
     std::cout << "3. Snake\n";
     std::cout << "4. Breakout\n";
-    std::cout << "5. Sair\n";
+    std::cout << "5. Space Invaders\n";
+    std::cout << "6. Sair\n";
     std::cout << "Escolha o jogo: ";
     std::cin >> choice;
 
@@ -32,6 +34,9 @@ int main() {
             Breakout::run();
             break;
         case 5:
+            SpaceInvaders::run();
+            break;
+        case 6:
             std::cout << "Saindo...\n";
             break;
         default:

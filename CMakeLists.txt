@@ -20,6 +20,8 @@ add_executable(cpp_arcade main.cpp
         src/snake/Snake.cpp
         src/breakout/Breakout.h
         src/breakout/Breakout.cpp
+        src/spaceinvaders/SpaceInvaders.h
+        src/spaceinvaders/SpaceInvaders.cpp
 )
 
 target_link_libraries(cpp_arcade raylib)
