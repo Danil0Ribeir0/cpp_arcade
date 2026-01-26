@@ -1,4 +1,4 @@
-#include <iostream>
+#include "src/menu/Menu.h"
 #include "src/tictactoe/TicTacToe.h"
 #include "src/pong/Pong.h"
 #include "src/snake/Snake.h"
@@ -7,45 +7,37 @@
 #include "src/tetris/Tetris.h"
 
 int main() {
-    int choice = 0;
+    bool exitApp = false;
 
-    std::cout << "========================\n";
-    std::cout << "      CPP ARCADE        \n";
-    std::cout << "========================\n";
-    std::cout << "1. Tic-Tac-Toe\n";
-    std::cout << "2. Pong\n";
-    std::cout << "3. Snake\n";
-    std::cout << "4. Breakout\n";
-    std::cout << "5. Space Invaders\n";
-    std::cout << "6. Tetris\n";
-    std::cout << "7. Sair\n";
-    std::cout << "Escolha o jogo: ";
-    std::cin >> choice;
+    while (!exitApp) {
+        Menu::GameOption choice = Menu::Show();
 
-    switch (choice) {
-        case 1:
-            TicTacToe::run();
-            break;
-        case 2:
-            Pong::run();
-            break;
-        case 3:
-            Snake::run();
-            break;
-        case 4:
-            Breakout::run();
-            break;
-        case 5:
-            SpaceInvaders::run();
-            break;
-        case 6:
-            Tetris::run();
-            break;
-        case 7:
-            std::cout << "Saindo...\n";
-            break;
-        default:
-            std::cout << "Opcao invalida!\n";
+        switch (choice) {
+            case Menu::TIC_TAC_TOE:
+                TicTacToe::run();
+                break;
+            case Menu::PONG:
+                Pong::run();
+                break;
+            case Menu::SNAKE:
+                Snake::run();
+                break;
+            case Menu::BREAKOUT:
+                Breakout::run();
+                break;
+            case Menu::SPACE_INVADERS:
+                SpaceInvaders::run();
+                break;
+            case Menu::TETRIS:
+                Tetris::run();
+                break;
+            case Menu::EXIT:
+                exitApp = true;
+                break;
+            default:
+                exitApp = true;
+                break;
+        }
     }
 
     return 0;
