@@ -8,6 +8,10 @@ namespace Pong {
     const int PADDLE_WIDTH = 15;
     const int PADDLE_HEIGHT = 80;
 
+    enum class Screen { MENU, GAME };
+    Screen currentScreen = Screen::MENU;
+    bool exitGame = false;
+
     struct Ball {
         float x, y;
         float speedX, speedY;
@@ -35,6 +39,7 @@ namespace Pong {
     Ball ball;
     Paddle player;
     Paddle cpu;
+    bool paused = false;
 
     void ResetBall() {
         ball.x = SCREEN_WIDTH / 2.0f;
@@ -48,9 +53,6 @@ namespace Pong {
     }
 
     void InitPong() {
-        InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Pong - C++ Arcade");
-        SetTargetFPS(60);
-
         ball.radius = 10;
         ResetBall();
 
@@ -63,9 +65,49 @@ namespace Pong {
         cpu.y = SCREEN_HEIGHT / 2.0f - PADDLE_HEIGHT / 2.0f;
         cpu.speed = 5.5f;
         cpu.score = 0;
+
+        paused = false;
+    }
+
+    bool DrawButton(const char* text, Rectangle rect) {
+        bool clicked = false;
+        Vector2 mousePoint = GetMousePosition();
+        bool hover = CheckCollisionPointRec(mousePoint, rect);
+
+        DrawRectangleRec(rect, hover ? DARKGRAY : GRAY);
+        DrawRectangleLinesEx(rect, 2, BLACK);
+
+        int textW = MeasureText(text, 20);
+        DrawText(text, rect.x + rect.width/2 - textW/2, rect.y + rect.height/2 - 10, 20, WHITE);
+
+        if (hover && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) clicked = true;
+        return clicked;
+    }
+
+    void DrawMenu() {
+        int titleW = MeasureText("PONG", 60);
+        DrawText("PONG", SCREEN_WIDTH/2 - titleW/2, 80, 60, WHITE);
+
+        if (DrawButton("INICIAR", {(float)SCREEN_WIDTH/2 - 100, 200, 200, 50})) {
+            InitPong();
+            currentScreen = Screen::GAME;
+        }
+
+        if (DrawButton("SAIR", {(float)SCREEN_WIDTH/2 - 100, 280, 200, 50})) {
+            exitGame = true;
+        }
+
+        const char* inst = "W/S ou Setas para Mover";
+        DrawText(inst, SCREEN_WIDTH/2 - MeasureText(inst, 20)/2, SCREEN_HEIGHT - 50, 20, LIGHTGRAY);
     }
 
     void UpdateGame() {
+        if (currentScreen == Screen::MENU) return;
+
+        if (IsKeyPressed(KEY_P)) paused = !paused;
+        if (IsKeyPressed(KEY_M)) currentScreen = Screen::MENU;
+        if (paused) return;
+
         if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
             player.y -= player.speed;
         }
@@ -120,24 +162,35 @@ namespace Pong {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        DrawLine(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT, Fade(WHITE, 0.2f));
+        if (currentScreen == Screen::MENU) {
+            DrawMenu();
+        } else {
+            DrawLine(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT, Fade(WHITE, 0.2f));
 
-        ball.Draw();
-        player.Draw();
-        cpu.Draw();
+            ball.Draw();
+            player.Draw();
+            cpu.Draw();
 
-        DrawText(std::to_string(player.score).c_str(), SCREEN_WIDTH / 4, 20, 60, WHITE);
-        DrawText(std::to_string(cpu.score).c_str(), 3 * SCREEN_WIDTH / 4, 20, 60, WHITE);
+            DrawText(std::to_string(player.score).c_str(), SCREEN_WIDTH / 4, 20, 60, WHITE);
+            DrawText(std::to_string(cpu.score).c_str(), 3 * SCREEN_WIDTH / 4, 20, 60, WHITE);
 
-        DrawText("ESC para Sair", 10, SCREEN_HEIGHT - 20, 10, GRAY);
+            if (paused) DrawText("PAUSED", SCREEN_WIDTH/2 - MeasureText("PAUSED", 30)/2, SCREEN_HEIGHT/2, 30, GRAY);
+
+            DrawText("[M] Menu  [P] Pausa", 10, SCREEN_HEIGHT - 20, 10, GRAY);
+        }
 
         EndDrawing();
     }
 
     void run() {
-        InitPong();
+        InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Pong - C++ Arcade");
+        SetTargetFPS(60);
 
-        while (!WindowShouldClose()) {
+        InitPong();
+        currentScreen = Screen::MENU;
+        exitGame = false;
+
+        while (!WindowShouldClose() && !exitGame) {
             UpdateGame();
             DrawGame();
         }
