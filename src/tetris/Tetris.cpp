@@ -1,23 +1,15 @@
 #include "Tetris.h"
-#include <cstring> // Para memcpy
+#include <cstring>
 
 namespace Tetris {
 
-    // Definição das 7 (I, J, L, O, S, T, Z)
     const Tetromino SHAPES[7] = {
-        // I
         { {{0,0,0,0}, {1,1,1,1}, {0,0,0,0}, {0,0,0,0}}, SKYBLUE, 4 },
-        // J
         { {{1,0,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}}, BLUE, 3 },
-        // L
         { {{0,0,1,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}}, ORANGE, 3 },
-        // O
         { {{1,1,0,0}, {1,1,0,0}, {0,0,0,0}, {0,0,0,0}}, YELLOW, 2 },
-        // S
         { {{0,1,1,0}, {1,1,0,0}, {0,0,0,0}, {0,0,0,0}}, GREEN, 3 },
-        // T
         { {{0,1,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}}, PURPLE, 3 },
-        // Z
         { {{1,1,0,0}, {0,1,1,0}, {0,0,0,0}, {0,0,0,0}}, RED, 3 }
     };
 
@@ -41,7 +33,7 @@ namespace Tetris {
     void Game::NewPiece() {
         currentPiece = nextPiece;
         nextPiece = SHAPES[GetRandomValue(0, 6)];
-        
+
         currentPos.x = COLS / 2 - currentPiece.size / 2;
         currentPos.y = 0;
 
@@ -66,9 +58,9 @@ namespace Tetris {
     }
 
     void Game::RotatePiece() {
-        int temp[4][4];
+        int temp[4][4] = {0}; // Inicializado com zeros para evitar lixo de memória
         int n = currentPiece.size;
-        
+
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 temp[j][n - 1 - i] = currentPiece.shape[i][j];
@@ -142,7 +134,7 @@ namespace Tetris {
 
         DrawRectangleRec(rect, hover ? DARKGRAY : GRAY);
         DrawRectangleLinesEx(rect, 2, BLACK);
-        
+
         int textW = MeasureText(text, 20);
         DrawText(text, rect.x + rect.width/2 - textW/2, rect.y + rect.height/2 - 10, 20, WHITE);
 
@@ -169,7 +161,7 @@ namespace Tetris {
 
     void Game::Update() {
         if (currentScreen == Screen::MENU) return;
-        
+
         if (!running) {
             if (IsKeyPressed(KEY_R)) Init();
             if (IsKeyPressed(KEY_M)) currentScreen = Screen::MENU;
@@ -194,12 +186,12 @@ namespace Tetris {
                 if (CheckCollision(0, 1, currentPiece.shape)) {
                     currentPos.y++;
                     lastFallTime = GetTime();
-                    score++; // Ganha ponto por acelerar
+                    score++;
                 } else {
                     LockPiece();
                 }
             }
-        } 
+        }
         else if (GetTime() - lastFallTime > fallInterval) {
             if (CheckCollision(0, 1, currentPiece.shape)) {
                 currentPos.y++;
@@ -220,12 +212,12 @@ namespace Tetris {
         } else {
             DrawRectangle(0, 0, SCREEN_WIDTH, HEADER_HEIGHT, BLACK);
             DrawText(TextFormat("SCORE: %05i", score), 20, 20, 20, WHITE);
-            
+
             DrawRectangle(0, HEADER_HEIGHT, COLS * BLOCK_SIZE, ROWS * BLOCK_SIZE, BLACK);
 
             for (int i = 0; i < ROWS; i++) {
                 for (int j = 0; j < COLS; j++) {
-                    if (grid[i][j].r != 0 || grid[i][j].g != 0 || grid[i][j].b != 0) { // Se não for preto
+                    if (grid[i][j].r != 0 || grid[i][j].g != 0 || grid[i][j].b != 0) {
                         DrawRectangle(j * BLOCK_SIZE, i * BLOCK_SIZE + HEADER_HEIGHT, BLOCK_SIZE - 1, BLOCK_SIZE - 1, grid[i][j]);
                     }
                     DrawRectangleLines(j * BLOCK_SIZE, i * BLOCK_SIZE + HEADER_HEIGHT, BLOCK_SIZE, BLOCK_SIZE, Fade(DARKGRAY, 0.2f));
@@ -237,7 +229,7 @@ namespace Tetris {
                     if (currentPiece.shape[i][j]) {
                         int drawX = (currentPos.x + j) * BLOCK_SIZE;
                         int drawY = (currentPos.y + i) * BLOCK_SIZE + HEADER_HEIGHT;
-                        if (drawY >= HEADER_HEIGHT) { // Não desenha se estiver acima do teto (buffer zone)
+                        if (drawY >= HEADER_HEIGHT) {
                             DrawRectangle(drawX, drawY, BLOCK_SIZE - 1, BLOCK_SIZE - 1, currentPiece.color);
                         }
                     }
