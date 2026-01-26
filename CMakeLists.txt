@@ -22,6 +22,8 @@ add_executable(cpp_arcade main.cpp
         src/breakout/Breakout.cpp
         src/spaceinvaders/SpaceInvaders.h
         src/spaceinvaders/SpaceInvaders.cpp
+        src/tetris/Tetris.h
+        src/tetris/Tetris.cpp
 )
 
 target_link_libraries(cpp_arcade raylib)

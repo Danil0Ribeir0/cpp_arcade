@@ -4,6 +4,7 @@
 #include "src/snake/Snake.h"
 #include "src/breakout/Breakout.h"
 #include "src/spaceinvaders/SpaceInvaders.h"
+#include "src/tetris/Tetris.h"
 
 int main() {
     int choice = 0;
@@ -16,7 +17,8 @@ int main() {
     std::cout << "3. Snake\n";
     std::cout << "4. Breakout\n";
     std::cout << "5. Space Invaders\n";
-    std::cout << "6. Sair\n";
+    std::cout << "6. Tetris\n";
+    std::cout << "7. Sair\n";
     std::cout << "Escolha o jogo: ";
     std::cin >> choice;
 
@@ -37,6 +39,9 @@ int main() {
             SpaceInvaders::run();
             break;
         case 6:
+            Tetris::run();
+            break;
+        case 7:
             std::cout << "Saindo...\n";
             break;
         default:
