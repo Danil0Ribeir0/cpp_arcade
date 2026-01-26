@@ -88,14 +88,14 @@ O desafio final de lógica.
 
 ## ⌨️ Controles Gerais
 
-O Arcade foi desenhado para ser intuitivo, mas aqui estão os controles padrão:
+O Arcade possui uma interface gráfica intuitiva.
 
-* **Menu Principal:** Use o teclado numérico ou digite o número para selecionar o jogo.
+* **Navegação no Menu:** Use o **Mouse (Clique Esquerdo)** para selecionar os jogos e botões.
 * **Movimentação:** `WASD` ou `Setas Direcionais`.
 * **Ação (Tiro/Rotação):** `Espaço` ou `Cima`.
 * **Pausa:** `P`.
-* **Reiniciar:** `R` (nas telas de Game Over).
-* **Voltar ao Menu:** `M` (nas telas de Game Over).
+* **Reiniciar Jogo:** `R` (disponível nas telas de Game Over).
+* **Voltar ao Menu:** `M` (disponível nas telas de Game Over ou Pausa).
 
 ---
 
